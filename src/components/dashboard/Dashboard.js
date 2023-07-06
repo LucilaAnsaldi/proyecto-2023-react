@@ -3,43 +3,14 @@ import { useEffect, useState } from "react";
 import NewBook from "../NewBook/NewBook";
 import BooksFilter from "../bookFilter/BookFilter";
 import Books from "../books/Books";
-const BOOKS = [
-  {
-    id: 1,
-    title: "100 años de soledad",
-    author: "Gabriel García Marquez",
-    dateRead: new Date(2021, 8, 12),
-    pageCount: 410,
-  },
-  {
-    id: 2,
-    title: "Todos los fuegos el fuego",
-    author: "Julio Cortazar",
-    dateRead: new Date(2020, 6, 11),
-    pageCount: 197,
-  },
-  {
-    id: 3,
-    title: "Asesinato en el Orient Express",
-    author: "Agatha Christie",
-    dateRead: new Date(2021, 5, 9),
-    pageCount: 256,
-  },
-  {
-    id: 4,
-    title: "Las dos torres",
-    author: "J.R.R Tolkien",
-    dateRead: new Date(2020, 3, 22),
-    pageCount: 352,
-  },
-];
+const BOOKS = [];
 
 const Dashboard = () => {
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState(BOOKS);
   const [yearFiltered, setYearFiltered] = useState("2023");
 
   useEffect(() => {
-    fetch("https://63a44a012a73744b0072f847.mockapi.io/api/books/Books", {
+    fetch("http://localhost:8080/book/traertodoslosbook", {
       headers: {
         Accept: "application/json",
       },
@@ -47,9 +18,12 @@ const Dashboard = () => {
       .then((response) => response.json())
       .then((bookData) => {
         const booksMapped = bookData.map((book) => ({
-          ...book,
-          dateRead: new Date(book.dateRead),
+          title: book.bookTitle,
+          author: book.author,
+          dateRead: new Date(book.date),
+          pageCount: book.amountPages,
         }));
+        console.log(booksMapped);
         setBooks(booksMapped);
       })
       .catch((error) => console.log(error));
@@ -58,16 +32,16 @@ const Dashboard = () => {
   const addBookHandler = (book) => {
     const dateString = book.dateRead.toISOString().slice(0, 10);
 
-    fetch("https://63a44a012a73744b0072f847.mockapi.io/api/books/Books", {
+    fetch("http://localhost:8080/book/crear", {
       method: "POST",
       headers: {
         "content-type": "application/json",
       },
       body: JSON.stringify({
-        title: book.title,
+        bookTitle: book.title,
+        amountPages: book.pageCount,
+        date: dateString,
         author: book.author,
-        dateRead: dateString,
-        pageCount: parseInt(book.pageCount, 10),
       }),
     })
       .then((response) => {
@@ -78,6 +52,7 @@ const Dashboard = () => {
       })
       .then(() => {
         const newBooksArray = [book, ...books];
+        console.log(newBooksArray);
         setBooks(newBooksArray);
       })
       .catch((error) => console.log(error));
